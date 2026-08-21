@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Card } from '../game/types';
 import { rankLabel, SUIT_SYMBOL } from '../game/types';
 
@@ -6,17 +7,28 @@ interface Props {
   onClick?: () => void;
   disabled?: boolean;
   small?: boolean;
+  style?: CSSProperties;
 }
 
 const RED_SUITS = new Set(['H', 'D']);
 
-export default function PlayingCard({ card, onClick, disabled, small }: Props) {
+// Face cards get a distinct pictorial glyph in the center instead of a plain suit pip.
+const FACE_ICON: Record<number, string> = { 11: '♞', 12: '♛', 13: '♚' };
+
+export default function PlayingCard({ card, onClick, disabled, small, style }: Props) {
   const isRed = RED_SUITS.has(card.suit);
+  const faceIcon = FACE_ICON[card.rank];
+  const isAce = card.rank === 14;
   const classes = ['playing-card'];
   if (isRed) classes.push('red');
   if (onClick && !disabled) classes.push('clickable');
   if (disabled) classes.push('disabled');
   if (small) classes.push('small');
+  if (faceIcon) classes.push('face-card');
+
+  const pipClasses = ['pip'];
+  if (faceIcon) pipClasses.push('face');
+  if (isAce) pipClasses.push('ace');
 
   return (
     <button
@@ -24,13 +36,14 @@ export default function PlayingCard({ card, onClick, disabled, small }: Props) {
       className={classes.join(' ')}
       onClick={onClick}
       disabled={!onClick || disabled}
+      style={style}
     >
       <span className="corner top">
         {rankLabel(card.rank)}
         <br />
         {SUIT_SYMBOL[card.suit]}
       </span>
-      <span className="pip">{SUIT_SYMBOL[card.suit]}</span>
+      <span className={pipClasses.join(' ')}>{faceIcon ?? SUIT_SYMBOL[card.suit]}</span>
       <span className="corner bottom">
         {rankLabel(card.rank)}
         <br />
@@ -40,6 +53,6 @@ export default function PlayingCard({ card, onClick, disabled, small }: Props) {
   );
 }
 
-export function CardBack() {
-  return <div className="playing-card back" />;
+export function CardBack({ style }: { style?: CSSProperties }) {
+  return <div className="playing-card back" style={style} />;
 }
