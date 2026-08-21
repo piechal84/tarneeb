@@ -12,6 +12,34 @@
   padding: 0.75rem;
 }
 
+.header-controls {
+  position: fixed;
+  top: 0.6rem;
+  right: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.icon-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f2f2f2;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.icon-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  transform: translateY(-1px);
+}
+.icon-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
 .scoreboard {
   display: flex;
   justify-content: space-between;
@@ -557,5 +585,30 @@
 }
 .modal button.primary:hover {
   background: #ffe697;
+  transform: translateY(-2px);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.modal-actions button.primary {
+  margin-top: 0;
+}
+
+.modal button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f2f2f2;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 0.6rem 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.modal button.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }

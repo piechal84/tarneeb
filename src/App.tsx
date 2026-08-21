@@ -5,6 +5,7 @@ import PlayingCard, { CardBack } from './components/PlayingCard';
 import { aiBid, aiChooseCard, bestTrumpSuit } from './game/ai';
 import { createNewGame, gameReducer } from './game/engine';
 import { isLegalMove, trickWinner } from './game/rules';
+import { isMuted, playCardSound, playShuffleSound, playTrumpSound, setMuted } from './game/sound';
 import type { Seat, Suit } from './game/types';
 import {
   MAX_BID,
@@ -54,10 +55,19 @@ export default function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, createNewGame);
   const [collecting, setCollecting] = useState(false);
   const [dealing, setDealing] = useState(true);
+  const [muted, setMutedState] = useState(isMuted());
+  const [confirmRestart, setConfirmRestart] = useState(false);
+
+  function toggleMuted() {
+    const next = !muted;
+    setMuted(next);
+    setMutedState(next);
+  }
 
   // Show the dealing animation at the start of every round, blocking play until it finishes.
   useEffect(() => {
     setDealing(true);
+    playShuffleSound();
     const timer = setTimeout(() => setDealing(false), DEAL_DURATION);
     return () => clearTimeout(timer);
   }, [state.roundNumber]);
@@ -78,6 +88,7 @@ export default function App() {
     if (state.phase === 'choosing-trump' && state.highestBid && state.highestBid.seat !== 'south') {
       const seat = state.highestBid.seat;
       const timer = setTimeout(() => {
+        playTrumpSound();
         dispatch({ type: 'CHOOSE_TRUMP', suit: bestTrumpSuit(state.hands[seat]) });
       }, AI_DELAY);
       return () => clearTimeout(timer);
@@ -104,6 +115,7 @@ export default function App() {
           state.trump as Suit,
           partnerIsWinning(state.trick, seat, state.trump as Suit)
         );
+        playCardSound();
         dispatch({ type: 'PLAY_CARD', seat, card });
       }, AI_DELAY);
       return () => clearTimeout(timer);
@@ -133,6 +145,15 @@ export default function App() {
 
   return (
     <div className="table-root">
+      <div className="header-controls">
+        <button className="icon-btn" onClick={toggleMuted} title={muted ? 'Unmute sound' : 'Mute sound'}>
+          {muted ? '🔇' : '🔊'}
+        </button>
+        <button className="icon-btn" onClick={() => setConfirmRestart(true)} title="Restart match">
+          ⟲ Restart
+        </button>
+      </div>
+
       <header className="scoreboard">
         <div className="score-team">
           <span className="team-name">{TEAM_LABEL.southNorth}</span>
@@ -231,7 +252,10 @@ export default function App() {
                   style={fanStyle}
                   onClick={
                     humanTurnToPlay && legal
-                      ? () => dispatch({ type: 'PLAY_CARD', seat: 'south', card })
+                      ? () => {
+                          playCardSound();
+                          dispatch({ type: 'PLAY_CARD', seat: 'south', card });
+                        }
                       : undefined
                   }
                 />
@@ -260,7 +284,13 @@ export default function App() {
           <div className="panel-title">Choose trump suit</div>
           <div className="panel-buttons">
             {SUITS.map((s) => (
-              <button key={s} onClick={() => dispatch({ type: 'CHOOSE_TRUMP', suit: s })}>
+              <button
+                key={s}
+                onClick={() => {
+                  playTrumpSound();
+                  dispatch({ type: 'CHOOSE_TRUMP', suit: s });
+                }}
+              >
                 {SUIT_SYMBOL[s]} {SUIT_NAME[s]}
               </button>
             ))}
@@ -293,6 +323,29 @@ export default function App() {
             <button className="primary" onClick={() => dispatch({ type: 'ACK_ROUND' })}>
               Continue
             </button>
+          </div>
+        </div>
+      )}
+
+      {confirmRestart && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Restart Match?</h2>
+            <p>This resets the score to 0-0 and starts a new match. Current progress will be lost.</p>
+            <div className="modal-actions">
+              <button
+                className="primary"
+                onClick={() => {
+                  setConfirmRestart(false);
+                  dispatch({ type: 'NEW_GAME' });
+                }}
+              >
+                Restart
+              </button>
+              <button className="secondary" onClick={() => setConfirmRestart(false)}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
