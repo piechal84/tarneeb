@@ -39,30 +39,42 @@ function noiseBurst(audio: AudioContext, duration: number, volume: number, filte
   source.start();
 }
 
-// A soft low-frequency body under the noise, so taps read as a felt-on-card thud rather than a click.
-function thump(audio: AudioContext, duration: number, volume: number, startFreq: number, endFreq: number) {
-  const osc = audio.createOscillator();
-  const gain = audio.createGain();
-  osc.type = 'sine';
-  const now = audio.currentTime;
-  osc.frequency.setValueAtTime(startFreq, now);
-  osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
-  gain.gain.setValueAtTime(volume, now);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-  osc.connect(gain).connect(audio.destination);
-  osc.start(now);
-  osc.stop(now + duration + 0.02);
-}
-
 // Matches the trick card's 0.32s entrance animation so the sound rings for exactly as long as the card is in flight.
 const CARD_SOUND_DURATION = 0.32;
 
+// A bright, papery snap - like a card flicked down onto felt - not a pitched drum hit.
 export function playCardSound() {
   if (muted) return;
   const audio = getCtx();
   if (!audio) return;
-  noiseBurst(audio, CARD_SOUND_DURATION, 0.3, 1000);
-  thump(audio, CARD_SOUND_DURATION * 0.8, 0.16, 170, 85);
+
+  const bufferSize = Math.floor(audio.sampleRate * CARD_SOUND_DURATION);
+  const buffer = audio.createBuffer(1, bufferSize, audio.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    const t = i / audio.sampleRate;
+    // Very fast exponential decay - almost all the energy is in the first ~30ms "flick",
+    // with a faint papery tail rather than a sustained tone.
+    const envelope = Math.exp(-t * 32);
+    data[i] = (Math.random() * 2 - 1) * envelope;
+  }
+  const source = audio.createBufferSource();
+  source.buffer = buffer;
+
+  const highpass = audio.createBiquadFilter();
+  highpass.type = 'highpass';
+  highpass.frequency.value = 900;
+
+  const bandpass = audio.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.value = 3200;
+  bandpass.Q.value = 0.7;
+
+  const gain = audio.createGain();
+  gain.gain.value = 0.5;
+
+  source.connect(highpass).connect(bandpass).connect(gain).connect(audio.destination);
+  source.start();
 }
 
 export function playShuffleSound() {
