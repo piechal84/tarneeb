@@ -3,8 +3,15 @@
 }
 
 .table-root {
+  --felt-1: #0d4d2b;
+  --felt-2: #073019;
+  --felt-3: #04180d;
+  --accent: #ffd76a;
+  --accent-hover: #ffe697;
+  --accent-text: #1a1a1a;
+
   min-height: 100vh;
-  background: radial-gradient(circle at center, #0d4d2b 0%, #073019 70%, #04180d 100%);
+  background: radial-gradient(circle at center, var(--felt-1) 0%, var(--felt-2) 70%, var(--felt-3) 100%);
   color: #f2f2f2;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   display: flex;
@@ -12,13 +19,69 @@
   padding: 0.75rem;
 }
 
+.table-root[data-palette='sapphire'] {
+  --felt-1: #123a5e;
+  --felt-2: #0a1f38;
+  --felt-3: #05101c;
+  --accent: #7fd0ff;
+  --accent-hover: #a9e2ff;
+  --accent-text: #08202f;
+}
+
+.table-root[data-palette='ruby'] {
+  --felt-1: #5e1220;
+  --felt-2: #380a12;
+  --felt-3: #1c0509;
+  --accent: #ffb37e;
+  --accent-hover: #ffcaa5;
+  --accent-text: #2a1206;
+}
+
+.table-root[data-palette='royal'] {
+  --felt-1: #3b1d5e;
+  --felt-2: #221038;
+  --felt-3: #10081c;
+  --accent: #d9a8ff;
+  --accent-hover: #e8c9ff;
+  --accent-text: #241333;
+}
+
 .header-controls {
   position: fixed;
   top: 0.6rem;
   right: 0.6rem;
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
   z-index: 10;
+}
+
+.header-controls-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.palette-row {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.palette-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.palette-swatch:hover {
+  transform: scale(1.15);
+}
+.palette-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4);
 }
 
 .icon-btn {
@@ -112,7 +175,7 @@
 .trump-chip {
   margin-top: 0.2rem;
   font-weight: 600;
-  color: #ffd76a;
+  color: var(--accent);
 }
 
 .message-bar {
@@ -145,18 +208,18 @@
 
 .seat-label.active-turn {
   opacity: 1;
-  color: #1a1a1a;
-  background: #ffd76a;
+  color: var(--accent-text);
+  background: var(--accent);
   animation: turnPulse 1.4s ease-in-out infinite;
 }
 
 @keyframes turnPulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 106, 0.55);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(255, 215, 106, 0);
+    box-shadow: 0 0 0 6px transparent;
   }
 }
 
@@ -235,7 +298,7 @@
 }
 .trick-card.winning .playing-card {
   transform: scale(1.12) translateY(-6px);
-  box-shadow: 0 0 0 3px #ffd76a, 0 6px 14px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 3px var(--accent), 0 6px 14px rgba(0, 0, 0, 0.5);
 }
 
 .trick-area.collecting .trick-card .playing-card {
@@ -509,8 +572,8 @@
 }
 
 .panel-buttons button {
-  background: #ffd76a;
-  color: #1a1a1a;
+  background: var(--accent);
+  color: var(--accent-text);
   border: none;
   border-radius: 6px;
   padding: 0.45rem 0.9rem;
@@ -519,7 +582,7 @@
   transition: background 0.15s ease, transform 0.1s ease;
 }
 .panel-buttons button:hover {
-  background: #ffe697;
+  background: var(--accent-hover);
   transform: translateY(-2px);
 }
 .panel-buttons button:active {
@@ -569,13 +632,13 @@
 .winner-line {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #ffd76a;
+  color: var(--accent);
 }
 
 .modal button.primary {
   margin-top: 1rem;
-  background: #ffd76a;
-  color: #1a1a1a;
+  background: var(--accent);
+  color: var(--accent-text);
   border: none;
   border-radius: 6px;
   padding: 0.6rem 1.4rem;
@@ -584,7 +647,7 @@
   transition: background 0.15s ease, transform 0.1s ease;
 }
 .modal button.primary:hover {
-  background: #ffe697;
+  background: var(--accent-hover);
   transform: translateY(-2px);
 }
 

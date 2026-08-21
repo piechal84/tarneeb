@@ -51,12 +51,20 @@ function dealDelay(seat: Seat, indexInHand: number): CSSProperties {
   return { animationDelay: `${step * DEAL_STEP_MS}ms` };
 }
 
+const PALETTES = [
+  { id: 'emerald', name: 'Emerald', swatch: 'linear-gradient(135deg, #0d4d2b 50%, #ffd76a 50%)' },
+  { id: 'sapphire', name: 'Sapphire', swatch: 'linear-gradient(135deg, #123a5e 50%, #7fd0ff 50%)' },
+  { id: 'ruby', name: 'Ruby', swatch: 'linear-gradient(135deg, #5e1220 50%, #ffb37e 50%)' },
+  { id: 'royal', name: 'Royal Purple', swatch: 'linear-gradient(135deg, #3b1d5e 50%, #d9a8ff 50%)' },
+] as const;
+
 export default function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, createNewGame);
   const [collecting, setCollecting] = useState(false);
   const [dealing, setDealing] = useState(true);
   const [muted, setMutedState] = useState(isMuted());
   const [confirmRestart, setConfirmRestart] = useState(false);
+  const [palette, setPalette] = useState<(typeof PALETTES)[number]['id']>('emerald');
 
   function toggleMuted() {
     const next = !muted;
@@ -144,14 +152,27 @@ export default function App() {
   for (const p of state.trick) trickBySeat[p.seat] = p.card;
 
   return (
-    <div className="table-root">
+    <div className="table-root" data-palette={palette}>
       <div className="header-controls">
-        <button className="icon-btn" onClick={toggleMuted} title={muted ? 'Unmute sound' : 'Mute sound'}>
-          {muted ? '🔇' : '🔊'}
-        </button>
-        <button className="icon-btn" onClick={() => setConfirmRestart(true)} title="Restart match">
-          ⟲ Restart
-        </button>
+        <div className="header-controls-row">
+          <button className="icon-btn" onClick={toggleMuted} title={muted ? 'Unmute sound' : 'Mute sound'}>
+            {muted ? '🔇' : '🔊'}
+          </button>
+          <button className="icon-btn" onClick={() => setConfirmRestart(true)} title="Restart match">
+            ⟲ Restart
+          </button>
+        </div>
+        <div className="palette-row">
+          {PALETTES.map((p) => (
+            <button
+              key={p.id}
+              className={`palette-swatch${palette === p.id ? ' active' : ''}`}
+              style={{ background: p.swatch }}
+              title={p.name}
+              onClick={() => setPalette(p.id)}
+            />
+          ))}
+        </div>
       </div>
 
       <header className="scoreboard">
