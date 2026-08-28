@@ -1,5 +1,5 @@
 import { DAY_SECONDS, HASTE_COST_CRYSTALS, MUTATIONS, NIGHT_SECONDS, type Difficulty } from '../game/almanac';
-import { computePower } from '../game/state';
+import { computePower, teamIncomeRate } from '../game/state';
 import { kelkaStore } from '../game/store';
 import { isMuted, setMuted } from '../game/sound';
 import { useState } from 'react';
@@ -18,6 +18,7 @@ export default function ResourceBar() {
   const isDay = state.dayNight.isDay;
   const remaining = isDay ? DAY_SECONDS - state.dayNight.cyclePos : DAY_SECONDS + NIGHT_SECONDS - state.dayNight.cyclePos;
   const power = computePower(state, 'player');
+  const income = teamIncomeRate(state, 'player');
 
   function toggleMuted() {
     const next = !muted;
@@ -28,8 +29,13 @@ export default function ResourceBar() {
   return (
     <div className="resource-bar">
       <div className="resource-group">
-        <span className="chip">🪙 {Math.floor(res.coins).toLocaleString()}</span>
-        <span className="chip">💎 {Math.floor(res.diamonds).toLocaleString()}</span>
+        <span className="chip" title="Current total coin income from all your mature plots">
+          🪙 {Math.floor(res.coins).toLocaleString()} <em className="income-rate">(+{income.coins.toFixed(1)}/s)</em>
+        </span>
+        <span className="chip" title="Current total diamond income from all your mature plots">
+          💎 {Math.floor(res.diamonds).toLocaleString()}
+          {income.diamonds > 0 && <em className="income-rate"> (+{income.diamonds.toFixed(2)}/s)</em>}
+        </span>
         <span className="chip">🔷 {Math.floor(res.crystals).toLocaleString()}</span>
         <span className={`chip${power < 0 ? ' chip-warn' : ''}`} title="Power generated minus power drawn by your buildings">
           {power < 0 ? '⚠️' : '⚡'} {power >= 0 ? '+' : ''}

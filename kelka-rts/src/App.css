@@ -196,6 +196,12 @@
   font-style: normal;
 }
 
+.income-rate {
+  color: #8ea78d;
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
 .panel-title {
   font-weight: 600;
   font-size: 0.85rem;

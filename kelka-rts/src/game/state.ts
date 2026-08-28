@@ -29,7 +29,7 @@ import { createBuilding, powerFor, type Building } from './buildings';
 
 export type ConstructibleKind = 'incubator' | 'powerplant' | 'yard';
 import { createDayNight, createWeather, type DayNightState, type WeatherState } from './weather';
-import { createPlot, hasteCrop, plantCrop, type Plot } from './economy';
+import { createPlot, hasteCrop, plantCrop, plotIncomeThisTick, type IncomeTick, type Plot } from './economy';
 import { createUnit, distance, type Unit } from './units';
 import { AI_LAYOUT, PLAYER_LAYOUT, TILE } from './world';
 import type { EntityId, Resources, Team, Vec2 } from './types';
@@ -140,6 +140,22 @@ export function teamBonuses(state: GameState, team: Team) {
     if (abilities.grow) growSpeedBonus += (abilities.grow * mult) / 100;
   }
   return { incomeBonus, incubatorSpeedBonus, growSpeedBonus };
+}
+
+// Current total coins/sec and diamonds/sec across every mature plot the team owns — the
+// same math plotIncomeThisTick uses per-frame, just evaluated at dt=1 for a live "rate"
+// readout instead of an actual accrual.
+export function teamIncomeRate(state: GameState, team: Team): IncomeTick {
+  const { incomeBonus } = teamBonuses(state, team);
+  let coins = 0;
+  let diamonds = 0;
+  for (const plot of state.plots) {
+    if (plot.team !== team) continue;
+    const tick = plotIncomeThisTick(plot, 1, incomeBonus);
+    coins += tick.coins;
+    diamonds += tick.diamonds;
+  }
+  return { coins, diamonds };
 }
 
 export function addResources(state: GameState, team: Team, coins: number, diamonds: number) {
