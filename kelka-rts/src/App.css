@@ -190,6 +190,12 @@
   white-space: nowrap;
 }
 
+.tool-effect {
+  color: #ffe066;
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
 .panel-title {
   font-weight: 600;
   font-size: 0.85rem;
@@ -213,6 +219,7 @@
 
 .merge-btn {
   margin-top: 8px;
+  width: 100%;
 }
 
 .primary {

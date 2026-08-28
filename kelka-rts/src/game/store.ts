@@ -5,7 +5,7 @@ import {
   cmdAttackMove,
   cmdBuyTool,
   cmdHaste,
-  cmdMergeSelection,
+  cmdMergeGroup,
   cmdMove,
   cmdPlant,
   cmdResearch,
@@ -126,9 +126,9 @@ class KelkaStore {
   attackMoveSelection(dest: Vec2, targetId: EntityId | null, targetIsBuilding: boolean) {
     cmdAttackMove(this.state, this.state.selection, dest, targetId, targetIsBuilding);
   }
-  mergeSelection() {
+  mergeGroup(companionId: string, mergeTier: 0 | 1) {
     const before = this.state.nextId;
-    cmdMergeSelection(this.state, 'player', this.state.selection);
+    cmdMergeGroup(this.state, 'player', companionId, mergeTier);
     if (this.state.nextId !== before) playMergeSound();
   }
   buyTool(toolId: string) {

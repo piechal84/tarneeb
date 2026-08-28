@@ -20,7 +20,10 @@ import {
   type GameState,
 } from './state';
 import type { Building } from './buildings';
-import { PLAYER_LAYOUT, TILE } from './world';
+import { PLAYER_LAYOUT, TILE, WORLD_HEIGHT, WORLD_WIDTH } from './world';
+
+// Half a building's own footprint, so a placed building can't be clipped by the map edge.
+const BUILD_MARGIN = TILE;
 
 // A diamond is treated as worth ~20,000 coins purely so the AI can rank Solar Grove crops
 // (which pay in diamonds) against each other and against coin crops on one scale. Only
@@ -47,7 +50,10 @@ function bestAffordableUnlockedCompanion(state: GameState): string | null {
   return options.length > 0 ? options[options.length - 1].id : null;
 }
 
-// Tries a ring of candidate spots around the Construction Yard until one is free.
+// Tries a ring of candidate spots around the Construction Yard until one is free. The Yard
+// sits close to the map's top/bottom edge, so a naive 360° ring can propose a spot off the
+// canvas entirely — the building would still get built there, just invisibly. Candidates
+// outside the playable area are skipped rather than attempted.
 function tryBuild(state: GameState, yard: Building, kind: 'incubator' | 'powerplant'): boolean {
   for (let ring = 1; ring <= 4; ring++) {
     for (let angle = 0; angle < 360; angle += 45) {
@@ -56,6 +62,7 @@ function tryBuild(state: GameState, yard: Building, kind: 'incubator' | 'powerpl
         x: yard.pos.x + Math.cos(rad) * ring * TILE * 1.5,
         y: yard.pos.y + Math.sin(rad) * ring * TILE * 1.5,
       };
+      if (pos.x < BUILD_MARGIN || pos.x > WORLD_WIDTH - BUILD_MARGIN || pos.y < BUILD_MARGIN || pos.y > WORLD_HEIGHT - BUILD_MARGIN) continue;
       const before = state.buildings.length;
       cmdStartBuild(state, 'ai', kind, pos);
       if (state.buildings.length > before) return true;

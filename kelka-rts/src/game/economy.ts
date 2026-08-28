@@ -1,4 +1,4 @@
-import { cropById, MUTATIONS, WATERING_CAN_PER_LEVEL, type GroveId, type MutationId } from './almanac';
+import { cropById, MUTATIONS, type GroveId, type MutationId } from './almanac';
 import type { Team, Vec2 } from './types';
 import type { PlotSlot } from './world';
 
@@ -17,10 +17,6 @@ export function createPlot(slot: PlotSlot): Plot {
   return { id: slot.id, team: slot.team, grove: slot.grove, pos: slot.pos, cropId: null, progress: 0, ready: false, mutation: null };
 }
 
-export function wateringGrowthBonus(level: number): number {
-  return 1 - WATERING_CAN_PER_LEVEL * level;
-}
-
 // Planting an empty plot always works. Replanting an occupied one only works once it's
 // matured (ready) — that's a deliberate "swap in a better crop" upgrade, not an accidental
 // interruption of a still-growing one. Returns whether it actually planted, so the caller
@@ -36,16 +32,10 @@ export function plantCrop(plot: Plot, cropId: string): boolean {
   return true;
 }
 
-export function tickPlotGrowth(
-  plot: Plot,
-  dt: number,
-  dayNightMultiplier: number,
-  wateringLevel: number,
-  currentMutation: MutationId | null
-) {
+export function tickPlotGrowth(plot: Plot, dt: number, dayNightMultiplier: number, currentMutation: MutationId | null) {
   if (!plot.cropId || plot.ready) return;
   const def = cropById(plot.cropId);
-  const rate = (1 / def.growSeconds) * dayNightMultiplier * wateringGrowthBonus(wateringLevel) ** -1;
+  const rate = (1 / def.growSeconds) * dayNightMultiplier;
   plot.progress = Math.min(1, plot.progress + rate * dt);
   if (plot.progress >= 1) {
     plot.ready = true;

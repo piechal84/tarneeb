@@ -19,6 +19,7 @@ import {
   RESEARCH_COST,
   RESEARCH_POWER_DRAW,
   toolById,
+  WATERING_CAN_PER_LEVEL,
   type Difficulty,
   type TechTier,
 } from './almanac';
@@ -122,7 +123,10 @@ export function teamUnits(state: GameState, team: Team): Unit[] {
 }
 
 export function teamBonuses(state: GameState, team: Team) {
-  let incomeBonus = 1;
+  // Watering Can boosts income on whatever's currently planted, rather than grow speed —
+  // that way it stays useful (and visible) for the whole match instead of only mattering
+  // during the increasingly small window before a plot matures.
+  let incomeBonus = 1 + WATERING_CAN_PER_LEVEL * (state.tools[team].wateringcan ?? 0);
   let incubatorSpeedBonus = 1;
   let growSpeedBonus = 1;
   for (const u of teamUnits(state, team)) {
@@ -284,6 +288,23 @@ export function cmdMergeSelection(state: GameState, team: Team, unitIds: EntityI
   const newUnit = createUnit(state.nextId++, team, companionId, (tier + 1) as 1 | 2, { x: cx, y: cy });
   state.units.push(newUnit);
   state.selection = state.selection.filter((id) => !unitIds.includes(id));
+}
+
+// Merges every complete quartet of the given companion/tier found within the CURRENT
+// selection — so drag-selecting a big mixed army and hitting one button levels up as much
+// of it as qualifies, rather than requiring the player to hand-pick exactly 4 at a time.
+export function cmdMergeGroup(state: GameState, team: Team, companionId: string, mergeTier: 0 | 1) {
+  const eligible = state.selection
+    .map((id) => state.units.find((u) => u.id === id))
+    .filter((u): u is Unit => !!u && u.hp > 0 && u.team === team && u.companionId === companionId && u.mergeTier === mergeTier);
+  const batches = Math.floor(eligible.length / 4);
+  for (let i = 0; i < batches; i++) {
+    cmdMergeSelection(
+      state,
+      team,
+      eligible.slice(i * 4, i * 4 + 4).map((u) => u.id)
+    );
+  }
 }
 
 export function cmdSelectUnits(state: GameState, ids: EntityId[]) {
