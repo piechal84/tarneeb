@@ -4,6 +4,7 @@ import type { Plot } from '../game/economy';
 import type { GameState } from '../game/state';
 import type { Unit } from '../game/units';
 import { GRID_COLS, GRID_ROWS, TILE, WORLD_HEIGHT, WORLD_WIDTH } from '../game/world';
+import { BUILDING_IMAGES, isImageReady } from './buildingImages';
 
 const TEAM_COLOR = { player: '#3fae57', ai: '#c9463d' };
 const GROVE_COLOR = { field: '#5b4327', lunar: '#2c2a5e', solar: '#8a5a12' };
@@ -118,38 +119,51 @@ function drawHpBar(ctx: CanvasRenderingContext2D, cx: number, top: number, width
 
 function drawBuilding(ctx: CanvasRenderingContext2D, b: Building, selected: boolean) {
   const size = TILE * 1.7;
+  const img = BUILDING_IMAGES[b.kind];
+  const imgReady = isImageReady(img);
+  // Wider than the old plain circle so the illustration reads clearly; a fixed aspect ratio
+  // (matching the source art) rather than a square keeps it from looking stretched.
+  const artW = TILE * 2.6;
+  const artH = artW * (img.naturalHeight / img.naturalWidth || 0.55);
 
   if (selected) {
     ctx.strokeStyle = '#ffe066';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(b.pos.x, b.pos.y, size / 2 + 5, 0, Math.PI * 2);
+    ctx.ellipse(b.pos.x, b.pos.y, artW / 2 + 6, artH / 2 + 6, 0, 0, Math.PI * 2);
     ctx.stroke();
   }
 
+  // A soft team-colored backdrop keeps player/AI structures visually distinguishable even
+  // though both sides use the same artwork.
   ctx.fillStyle = TEAM_COLOR[b.team];
-  ctx.globalAlpha = 0.3;
+  ctx.globalAlpha = 0.25;
   ctx.beginPath();
-  ctx.arc(b.pos.x, b.pos.y, size / 2, 0, Math.PI * 2);
+  ctx.ellipse(b.pos.x, b.pos.y, artW / 2, artH / 2, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 1;
   ctx.strokeStyle = TEAM_COLOR[b.team];
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  ctx.font = `${Math.round(size * 0.55)}px serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(BUILDING_EMOJI[b.kind], b.pos.x, b.pos.y);
+  if (imgReady) {
+    ctx.drawImage(img, b.pos.x - artW / 2, b.pos.y - artH / 2, artW, artH);
+  } else {
+    // Fallback for the brief window before the image finishes its first load.
+    ctx.font = `${Math.round(size * 0.55)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(BUILDING_EMOJI[b.kind], b.pos.x, b.pos.y);
+  }
 
-  drawHpBar(ctx, b.pos.x, b.pos.y - size / 2 - 10, size, b.hp, b.maxHp, TEAM_COLOR[b.team]);
+  drawHpBar(ctx, b.pos.x, b.pos.y - artH / 2 - 10, artW, b.hp, b.maxHp, TEAM_COLOR[b.team]);
 
   if (b.constructing) {
     const pct = 1 - b.constructing.timeLeft / b.constructing.totalTime;
     ctx.strokeStyle = '#ffe066';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(b.pos.x, b.pos.y, size / 2 - 1, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
+    ctx.ellipse(b.pos.x, b.pos.y, artW / 2 - 1, artH / 2 - 1, 0, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
     ctx.stroke();
   }
 
@@ -157,17 +171,17 @@ function drawBuilding(ctx: CanvasRenderingContext2D, b: Building, selected: bool
     const pct = 1 - b.hatching.timeLeft / b.hatching.totalTime;
     ctx.font = '10px sans-serif';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`${companionById(b.hatching.companionId).emoji} ${Math.round(pct * 100)}%`, b.pos.x, b.pos.y + size / 2 + 12);
+    ctx.fillText(`${companionById(b.hatching.companionId).emoji} ${Math.round(pct * 100)}%`, b.pos.x, b.pos.y + artH / 2 + 12);
   }
 
   if (b.repairing) {
     ctx.strokeStyle = '#6ec6ff';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(b.pos.x, b.pos.y, size / 2 - 1, 0, Math.PI * 2);
+    ctx.ellipse(b.pos.x, b.pos.y, artW / 2 - 1, artH / 2 - 1, 0, 0, Math.PI * 2);
     ctx.stroke();
     ctx.font = '12px sans-serif';
-    ctx.fillText('🔧', b.pos.x + size / 2 - 6, b.pos.y - size / 2 + 6);
+    ctx.fillText('🔧', b.pos.x + artW / 2 - 6, b.pos.y - artH / 2 + 6);
   }
 }
 
