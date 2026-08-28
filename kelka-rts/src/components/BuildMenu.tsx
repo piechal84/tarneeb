@@ -12,6 +12,8 @@ import {
   POWER_PLANT_COST,
   RESEARCH_COST,
   TOOLS,
+  YARD_BUILD_SECONDS,
+  YARD_COST,
   type GroveId,
 } from '../game/almanac';
 import { computePower } from '../game/state';
@@ -26,6 +28,7 @@ export default function BuildMenu() {
   const state = kelkaStore.state;
   const tier = state.tech.player;
   const incubatorCount = state.buildings.filter((b) => b.team === 'player' && b.kind === 'incubator').length;
+  const hasYard = state.buildings.some((b) => b.team === 'player' && b.kind === 'yard');
   const power = computePower(state, 'player');
   const noPower = power < 0;
 
@@ -104,6 +107,22 @@ export default function BuildMenu() {
 
       {tab === 'build' && (
         <div className="panel-scroll">
+          {!hasYard && (
+            <div className="grove-group">
+              <div className="grove-title">Recovery</div>
+              <button
+                className={`item-btn${state.pendingBuild === 'yard' ? ' active' : ''}`}
+                disabled={state.resources.player.coins < YARD_COST}
+                onClick={() => kelkaStore.setPendingBuild(state.pendingBuild === 'yard' ? null : 'yard')}
+                title="Your Construction Yard was destroyed — nothing else can be built until you rebuild one. Click an empty tile near your Garden Heart to place it."
+              >
+                <span>🏗️ Rebuild Construction Yard</span>
+                <span className="item-meta">
+                  🪙 {YARD_COST.toLocaleString()} · ⏱ {YARD_BUILD_SECONDS}s
+                </span>
+              </button>
+            </div>
+          )}
           <div className="grove-group">
             <div className="grove-title">Research</div>
             {(() => {
@@ -114,9 +133,9 @@ export default function BuildMenu() {
               return (
                 <button
                   className="item-btn"
-                  disabled={!!job || state.resources.player.coins < cost.coins}
+                  disabled={!hasYard || !!job || state.resources.player.coins < cost.coins}
                   onClick={() => kelkaStore.research()}
-                  title="Unlocks the next tech tier's crops and companions"
+                  title={hasYard ? "Unlocks the next tech tier's crops and companions" : 'Needs a Construction Yard.'}
                 >
                   <span>🔬 Research Tier {nextTier}</span>
                   <span className="item-meta">{job ? `${Math.round((1 - job.timeLeft / job.totalTime) * 100)}%` : `🪙 ${cost.coins.toLocaleString()}`}</span>
@@ -128,22 +147,23 @@ export default function BuildMenu() {
             <div className="grove-title">Structures</div>
             <button
               className={`item-btn${state.pendingBuild === 'powerplant' ? ' active' : ''}`}
+              disabled={!hasYard}
               onClick={() => kelkaStore.setPendingBuild(state.pendingBuild === 'powerplant' ? null : 'powerplant')}
-              title="Generates power. Click an empty tile near your Construction Yard to place."
+              title={hasYard ? 'Generates power. Click an empty tile near your Construction Yard to place.' : 'Needs a Construction Yard.'}
             >
-              <span>🔋 Power Plant</span>
+              <span>🔋 Power Plant {!hasYard && '🏗️🔒'}</span>
               <span className="item-meta">
                 🪙 {POWER_PLANT_COST.toLocaleString()} · ⏱ {POWER_PLANT_BUILD_SECONDS}s
               </span>
             </button>
             <button
               className={`item-btn${state.pendingBuild === 'incubator' ? ' active' : ''}`}
-              disabled={incubatorCount >= MAX_INCUBATORS || noPower}
+              disabled={!hasYard || incubatorCount >= MAX_INCUBATORS || noPower}
               onClick={() => kelkaStore.setPendingBuild(state.pendingBuild === 'incubator' ? null : 'incubator')}
-              title={noPower ? 'Needs a positive power supply — build a Power Plant first.' : 'Hatches and merges companions. Click an empty tile near your Construction Yard to place.'}
+              title={!hasYard ? 'Needs a Construction Yard.' : noPower ? 'Needs a positive power supply — build a Power Plant first.' : 'Hatches and merges companions. Click an empty tile near your Construction Yard to place.'}
             >
               <span>
-                🥚 Kelka Egg Incubator ({incubatorCount}/{MAX_INCUBATORS}) {noPower && '⚡🔒'}
+                🥚 Kelka Egg Incubator ({incubatorCount}/{MAX_INCUBATORS}) {!hasYard ? '🏗️🔒' : noPower && '⚡🔒'}
               </span>
               <span className="item-meta">
                 🪙 {INCUBATOR_COST.toLocaleString()} · ⏱ {INCUBATOR_BUILD_SECONDS}s

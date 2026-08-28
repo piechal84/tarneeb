@@ -20,12 +20,14 @@ import {
   RESEARCH_POWER_DRAW,
   toolById,
   WATERING_CAN_PER_LEVEL,
+  YARD_BUILD_SECONDS,
+  YARD_COST,
   type Difficulty,
   type TechTier,
 } from './almanac';
 import { createBuilding, powerFor, type Building } from './buildings';
 
-export type ConstructibleKind = 'incubator' | 'powerplant';
+export type ConstructibleKind = 'incubator' | 'powerplant' | 'yard';
 import { createDayNight, createWeather, type DayNightState, type WeatherState } from './weather';
 import { createPlot, hasteCrop, plantCrop, type Plot } from './economy';
 import { createUnit, distance, type Unit } from './units';
@@ -249,12 +251,22 @@ export function cmdResearch(state: GameState, team: Team) {
 
 export function cmdStartBuild(state: GameState, team: Team, kind: ConstructibleKind, pos: Vec2) {
   const yard = teamBuildings(state, team).find((b) => b.kind === 'yard' && !b.constructing);
-  if (!yard) return;
-  // A Power Plant is the one thing you can always build — it's the way out of a deficit.
-  // Everything else needs the grid already in the black, which is what makes the Power
-  // Plant mandatory: the Yard's own draw alone starts a match at a deficit.
-  if (kind !== 'powerplant' && computePower(state, team) < 0) return;
-  if (distance(pos, yard.pos) > CONSTRUCTION_RANGE_TILES * TILE) return;
+
+  if (kind === 'yard') {
+    // Only rebuildable once none exists — a lost Yard would otherwise be a dead end, since
+    // every other building needs a working one to build from.
+    if (teamBuildings(state, team).some((b) => b.kind === 'yard')) return;
+  } else if (!yard) {
+    return;
+  }
+
+  // Incubators need the grid already in the black; the Yard and the Power Plant are always
+  // buildable — they're the two ways out of a deficit (or a destroyed Yard).
+  if (kind === 'incubator' && computePower(state, team) < 0) return;
+
+  const anchor = yard ?? teamBuildings(state, team).find((b) => b.kind === 'heart');
+  if (!anchor) return;
+  if (distance(pos, anchor.pos) > CONSTRUCTION_RANGE_TILES * TILE) return;
 
   const overlapsPlot = state.plots.some((p) => distance(p.pos, pos) < TILE);
   const overlapsBuilding = state.buildings.some((b) => b.hp > 0 && distance(b.pos, pos) < TILE * 1.6);
@@ -265,8 +277,8 @@ export function cmdStartBuild(state: GameState, team: Team, kind: ConstructibleK
     if (count >= MAX_INCUBATORS) return;
   }
 
-  const cost = kind === 'incubator' ? INCUBATOR_COST : POWER_PLANT_COST;
-  const buildSeconds = kind === 'incubator' ? INCUBATOR_BUILD_SECONDS : POWER_PLANT_BUILD_SECONDS;
+  const cost = kind === 'incubator' ? INCUBATOR_COST : kind === 'powerplant' ? POWER_PLANT_COST : YARD_COST;
+  const buildSeconds = kind === 'incubator' ? INCUBATOR_BUILD_SECONDS : kind === 'powerplant' ? POWER_PLANT_BUILD_SECONDS : YARD_BUILD_SECONDS;
   if (state.resources[team].coins < cost) return;
   state.resources[team].coins -= cost;
   state.buildings.push(createBuilding(state.nextId++, team, kind, pos, true, buildSeconds));

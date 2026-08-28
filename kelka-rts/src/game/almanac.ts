@@ -314,6 +314,12 @@ export const INCUBATOR_POWER_DRAW = 25;
 export const RESEARCH_POWER_DRAW = 25;
 export const MAX_INCUBATORS = 2;
 export const CONSTRUCTION_RANGE_TILES = 6;
+// A lost Construction Yard would otherwise be a dead end — every other building needs one
+// to build from — so it's rebuildable too, anchored off the Garden Heart instead (the one
+// structure that survives until the match actually ends), and exempt from the power gate
+// below like the Power Plant is, so a deficit can't lock the recovery path either.
+export const YARD_COST = 400;
+export const YARD_BUILD_SECONDS = 20;
 // "3 times slower" under a power deficit — applied to hatching, research, construction, and
 // repair alike.
 export const LOW_POWER_THROTTLE = 1 / 3;

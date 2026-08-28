@@ -54,13 +54,13 @@ function bestAffordableUnlockedCompanion(state: GameState): string | null {
 // sits close to the map's top/bottom edge, so a naive 360° ring can propose a spot off the
 // canvas entirely — the building would still get built there, just invisibly. Candidates
 // outside the playable area are skipped rather than attempted.
-function tryBuild(state: GameState, yard: Building, kind: 'incubator' | 'powerplant'): boolean {
+function tryBuild(state: GameState, anchor: Building, kind: 'incubator' | 'powerplant' | 'yard'): boolean {
   for (let ring = 1; ring <= 4; ring++) {
     for (let angle = 0; angle < 360; angle += 45) {
       const rad = (angle * Math.PI) / 180;
       const pos = {
-        x: yard.pos.x + Math.cos(rad) * ring * TILE * 1.5,
-        y: yard.pos.y + Math.sin(rad) * ring * TILE * 1.5,
+        x: anchor.pos.x + Math.cos(rad) * ring * TILE * 1.5,
+        y: anchor.pos.y + Math.sin(rad) * ring * TILE * 1.5,
       };
       if (pos.x < BUILD_MARGIN || pos.x > WORLD_WIDTH - BUILD_MARGIN || pos.y < BUILD_MARGIN || pos.y > WORLD_HEIGHT - BUILD_MARGIN) continue;
       const before = state.buildings.length;
@@ -76,7 +76,16 @@ function tryBuild(state: GameState, yard: Building, kind: 'incubator' | 'powerpl
 // Easy/Medium AIs visibly lag a human-paced player instead of reacting every tick.
 function runStrategicDecision(state: GameState) {
   const yard = teamBuildings(state, 'ai').find((b) => b.kind === 'yard' && !b.constructing);
-  if (!yard) return;
+
+  if (!yard) {
+    // Lost the Construction Yard (or it's still rebuilding) — nothing else can be built
+    // until a new one goes up, anchored off the Heart same as the player's recovery path.
+    if (!teamBuildings(state, 'ai').some((b) => b.kind === 'yard')) {
+      const heart = teamBuildings(state, 'ai').find((b) => b.kind === 'heart');
+      if (heart) tryBuild(state, heart, 'yard');
+    }
+    return;
+  }
 
   // A Power Plant is the one thing buildable at a deficit, so it has to come first — the
   // Yard's own draw means the AI starts in the hole just like the player does.
