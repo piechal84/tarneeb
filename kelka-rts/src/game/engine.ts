@@ -42,6 +42,7 @@ function tickBuildings(state: GameState, dt: number, playerIncubatorMult: number
     if (b.hatching.timeLeft <= 0) {
       const pos = { x: b.pos.x, y: b.pos.y + TILE };
       state.units.push(createUnit(state.nextId++, b.team, b.hatching.companionId, 0, pos));
+      state.stats[b.team].unitsBuilt++;
       b.hatching = null;
     }
   }
@@ -59,7 +60,10 @@ function tickConstruction(state: GameState, dt: number, playerMult: number, aiMu
     b.constructing.timeLeft -= dt * mult;
     const newRemaining = Math.max(0, b.constructing.timeLeft);
     b.hp = Math.min(b.maxHp, b.hp + (b.maxHp * (prevRemaining - newRemaining)) / b.constructing.totalTime);
-    if (b.constructing.timeLeft <= 0) b.constructing = null;
+    if (b.constructing.timeLeft <= 0) {
+      b.constructing = null;
+      state.stats[b.team].buildingsBuilt++;
+    }
   }
 }
 
@@ -92,6 +96,28 @@ function tickRepairs(state: GameState, dt: number, playerMult: number, aiMult: n
     }
     b.hp += affordableHeal;
     state.resources[b.team].coins -= affordableHeal * REPAIR_COST_PER_HP;
+  }
+}
+
+// A running "best so far" record, so the top damage-dealer is still known at the end of the
+// match even if it later died — scanning state.units after the fact would miss anyone who
+// isn't alive anymore.
+function updateMvp(state: GameState) {
+  for (const u of state.units) {
+    if (!state.mvp || u.damageDealt > state.mvp.damageDealt) {
+      state.mvp = { team: u.team, companionId: u.companionId, mergeTier: u.mergeTier, damageDealt: u.damageDealt };
+    }
+  }
+}
+
+// Must run before the dead-unit filter below (so it can still see this tick's casualties)
+// and skip anyone the Merge Rite consumed — that's an upgrade, not a combat loss.
+function tallyLosses(state: GameState) {
+  for (const u of state.units) {
+    if (u.hp <= 0 && !u.mergedAway) state.stats[u.team].unitsLost++;
+  }
+  for (const b of state.buildings) {
+    if (b.hp <= 0) state.stats[b.team].buildingsLost++;
   }
 }
 
@@ -139,6 +165,8 @@ export function tick(state: GameState, dt: number) {
     if (u.hp <= 0) continue;
     tickUnitCombat(u, state.units, state.buildings, dt, mods, AGGRO_RANGE_PX);
   }
+  updateMvp(state);
+  tallyLosses(state);
   state.units = state.units.filter((u) => u.hp > 0);
   state.selection = state.selection.filter((id) => state.units.some((u) => u.id === id));
   state.buildings = state.buildings.filter((b) => b.hp > 0 || b.kind === 'heart');

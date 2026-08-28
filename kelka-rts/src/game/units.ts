@@ -23,6 +23,10 @@ export interface Unit {
   command: UnitCommand;
   selected: boolean;
   abilityTimer: number;
+  damageDealt: number;
+  // Set the instant a unit is consumed by the Merge Rite (hp forced to 0 outside combat) so
+  // the match-stats tracker can tell "merged away" apart from "killed by the enemy".
+  mergedAway: boolean;
 }
 
 export function unitDef(unit: Unit): CompanionDef {
@@ -51,6 +55,8 @@ export function createUnit(id: EntityId, team: Team, companionId: string, mergeT
     command: 'idle',
     selected: false,
     abilityTimer: 0,
+    damageDealt: 0,
+    mergedAway: false,
   };
 }
 

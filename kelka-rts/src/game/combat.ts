@@ -72,6 +72,7 @@ export function tickUnitCombat(unit: Unit, units: Unit[], buildings: Building[],
       unit.atkTimer -= dt;
       if (unit.atkTimer <= 0) {
         const dmg = unit.attack * mods.dmgMult;
+        unit.damageDealt += dmg;
         if (unit.attackTargetIsBuilding) {
           const b = buildings.find((b) => b.id === unit.attackTargetId);
           if (b) b.hp -= dmg;

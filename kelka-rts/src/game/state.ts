@@ -40,6 +40,20 @@ export interface ResearchJob {
   totalTime: number;
 }
 
+export interface TeamStats {
+  buildingsBuilt: number;
+  buildingsLost: number;
+  unitsBuilt: number;
+  unitsLost: number;
+}
+
+export interface MvpRecord {
+  team: Team;
+  companionId: string;
+  mergeTier: 0 | 1 | 2;
+  damageDealt: number;
+}
+
 export interface GameState {
   time: number;
   nextId: number;
@@ -65,10 +79,16 @@ export interface GameState {
   hudAccumulator: number;
   difficulty: Difficulty;
   aiState: { plantCooldown: number; mergeCooldown: number; decisionCooldown: number; attackCooldown: number; attackThreshold: number };
+  stats: Record<Team, TeamStats>;
+  mvp: MvpRecord | null;
 }
 
 function initialResources(): Resources {
   return { coins: 200, diamonds: 0, crystals: 0 };
+}
+
+function initialStats(): TeamStats {
+  return { buildingsBuilt: 0, buildingsLost: 0, unitsBuilt: 0, unitsLost: 0 };
 }
 
 function initialTools(): Record<string, number> {
@@ -101,6 +121,8 @@ export function createInitialState(difficulty: Difficulty = 'medium'): GameState
     hudAccumulator: 0,
     difficulty,
     aiState: { plantCooldown: 2, mergeCooldown: 3, decisionCooldown: 1, attackCooldown: 20, attackThreshold: AI_DIFFICULTY[difficulty].attackThresholdBase },
+    stats: { player: initialStats(), ai: initialStats() },
+    mvp: null,
   };
 
   for (const layout of [PLAYER_LAYOUT, AI_LAYOUT]) {
@@ -312,7 +334,10 @@ export function cmdMergeSelection(state: GameState, team: Team, unitIds: EntityI
 
   const cx = units.reduce((s, u) => s + u.pos.x, 0) / 4;
   const cy = units.reduce((s, u) => s + u.pos.y, 0) / 4;
-  for (const u of units) u.hp = 0; // mark dead, cleaned up by engine tick
+  for (const u of units) {
+    u.hp = 0; // cleaned up by engine tick
+    u.mergedAway = true; // not a combat loss — don't count it against unitsLost
+  }
   const newUnit = createUnit(state.nextId++, team, companionId, (tier + 1) as 1 | 2, { x: cx, y: cy });
   state.units.push(newUnit);
   state.selection = state.selection.filter((id) => !unitIds.includes(id));

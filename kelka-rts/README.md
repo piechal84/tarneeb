@@ -26,7 +26,7 @@ Then open the printed local URL in your browser.
 - **Move / Attack**: drag-select your companions, then right-click open ground to move, or right-click an enemy unit or building to attack it. Right-click also cancels whatever's currently selected/pending (a crop, a companion to hatch, a building to place, a repair panel) if there's nothing to move.
 - **Haste**: spend Kelka Crystals (earned automatically over time, standing in for completed quests) to instantly finish a growing crop.
 - **Difficulty**: Easy / Medium / Hard buttons in the top bar restart the match with a slower- or faster-acting AI.
-- **Win condition**: destroy the AI's Garden Heart (top of the map) before it destroys yours.
+- **Win condition**: destroy the AI's Garden Heart (top of the map) before it destroys yours. The end screen shows a Buildings/Units Built vs Lost comparison for both sides plus an MVP callout — whichever single unit (from either team) dealt the most damage over the match, tracked even if it didn't survive to see the result. Merging doesn't count as a "loss" for the 4 companions it consumes — that's an upgrade, not a casualty.
 
 ## What's implemented (v1 / MVP)
 
