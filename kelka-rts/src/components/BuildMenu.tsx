@@ -169,6 +169,7 @@ export default function BuildMenu() {
               >
                 <span>
                   {t.emoji} {t.name} {t.implemented ? `Lv.${level}/${t.maxLevel}` : '(Coming soon)'}
+                  {t.implemented && t.effectLabel && <em className="tool-effect"> — {t.effectLabel(level)}</em>}
                 </span>
                 {t.implemented && <span className="item-meta">{maxed ? 'MAX' : `🪙 ${cost.toLocaleString()}`}</span>}
               </button>

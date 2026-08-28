@@ -22,7 +22,7 @@ Then open the printed local URL in your browser.
 - **Income**: there's no harvest step — once a plot's border turns gold it's matured and starts paying coins (or diamonds for Solar Grove crops) into your treasury automatically, every second, for as long as it stays planted. The small "+X/s" label under a mature plot shows its live rate. Clicking a mature plot with a different crop selected replaces it (paying that crop's seed price) if you want to upgrade it later.
 - **Hatch**: pick a companion in the Hatch tab, then click one of your Incubators to start hatching it.
 - **Repair**: click one of your own buildings to select it — a damaged one shows a Repair button in the right panel. Repairing drains coins per HP restored (rate throttled the same way as everything else under a power deficit) and switches off automatically once full or unaffordable.
-- **Merge**: drag-select exactly 4 identical, un-merged companions and click "Merge" in the right panel to fuse them into their next tier (Empowered ×2.5, Tenacious ×5 stats).
+- **Merge**: drag-select your whole army — the right panel groups the selection by companion and tier and shows a Merge button for every complete quartet it finds (with a ×N if you've got enough for several at once), fusing them into their next tier (Empowered ×2.5, Tenacious ×5 stats). No need to hand-pick exactly 4 at a time.
 - **Move / Attack**: drag-select your companions, then right-click open ground to move, or right-click an enemy unit or building to attack it. Right-click also cancels whatever's currently selected/pending (a crop, a companion to hatch, a building to place, a repair panel) if there's nothing to move.
 - **Haste**: spend Kelka Crystals (earned automatically over time, standing in for completed quests) to instantly finish a growing crop.
 - **Difficulty**: Easy / Medium / Hard buttons in the top bar restart the match with a slower- or faster-acting AI.
@@ -38,7 +38,7 @@ Then open the printed local URL in your browser.
 - The Merge Rite (4 → 1, twice).
 - Kelka Egg Incubator (now player-constructed, up to 2) and Garden Heart (win condition) buildings. Any building can be repaired for coins once damaged.
 - A scripted AI opponent that climbs the same tech/power/construction ladder as the player, farms, hatches, and merges one plot/unit at a time rather than in bursts (paced by difficulty, same as a human would), and launches attack waves — tuned by an Easy/Medium/Hard difficulty preset (decision pacing, mistake chance, and aggression).
-- The Watering Can tool (5 levels, cuts grow time). Fertilizer Bag, Garden Expansion, Reclaimer, and Trowel are stubbed in the Tools tab for a future update.
+- The Watering Can tool (5 levels, +7% income per level from your planted crops, up to +35% — shown live in the Tools tab as you buy levels). Fertilizer Bag, Garden Expansion, Reclaimer, and Trowel are stubbed in the Tools tab for a future update.
 
 ## Possible next steps
 

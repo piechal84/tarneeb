@@ -34,10 +34,18 @@ export default function UnitPanel() {
 
   const selected = state.units.filter((u) => state.selection.includes(u.id) && u.hp > 0);
 
-  const canMerge =
-    selected.length === 4 &&
-    selected[0].mergeTier < 2 &&
-    selected.every((u) => u.companionId === selected[0].companionId && u.mergeTier === selected[0].mergeTier);
+  // Group the selection by companion+tier so a big mixed-army drag-select can merge every
+  // complete quartet it contains in one click, instead of requiring exactly 4 units picked
+  // by hand each time.
+  const mergeGroups: { companionId: string; mergeTier: 0 | 1; count: number; batches: number }[] = [];
+  for (const u of selected) {
+    if (u.mergeTier >= 2) continue;
+    const existing = mergeGroups.find((g) => g.companionId === u.companionId && g.mergeTier === u.mergeTier);
+    if (existing) existing.count++;
+    else mergeGroups.push({ companionId: u.companionId, mergeTier: u.mergeTier as 0 | 1, count: 1, batches: 0 });
+  }
+  for (const g of mergeGroups) g.batches = Math.floor(g.count / 4);
+  const eligibleGroups = mergeGroups.filter((g) => g.batches > 0);
 
   return (
     <div className="unit-panel">
@@ -58,11 +66,14 @@ export default function UnitPanel() {
           );
         })}
       </div>
-      {canMerge && (
-        <button className="primary merge-btn" onClick={() => kelkaStore.mergeSelection()}>
-          ⚗️ Merge into {MERGE_TIER_NAME[selected[0].mergeTier + 1]}
-        </button>
-      )}
+      {eligibleGroups.map((g) => {
+        const def = companionById(g.companionId);
+        return (
+          <button key={`${g.companionId}:${g.mergeTier}`} className="primary merge-btn" onClick={() => kelkaStore.mergeGroup(g.companionId, g.mergeTier)}>
+            ⚗️ Merge {def.emoji} {def.name} → {MERGE_TIER_NAME[g.mergeTier + 1]} {g.batches > 1 ? `(×${g.batches})` : ''}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -115,8 +115,7 @@ export function tick(state: GameState, dt: number) {
 
   for (const plot of state.plots) {
     const bonus = plot.team === 'player' ? playerBonus : aiBonus;
-    const wateringLevel = state.tools[plot.team].wateringcan ?? 0;
-    tickPlotGrowth(plot, dt, state.dayNight.growthMultiplier * bonus.growSpeedBonus, wateringLevel, mutation);
+    tickPlotGrowth(plot, dt, state.dayNight.growthMultiplier * bonus.growSpeedBonus, mutation);
   }
 
   tickCompanionAbilities(state, dt);

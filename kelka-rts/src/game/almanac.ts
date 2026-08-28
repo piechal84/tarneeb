@@ -220,6 +220,10 @@ export interface ToolDef {
   description: string;
   costForLevel: (level: number) => number; // cost to buy this level (1-based)
   implemented: boolean;
+  // What the CURRENT level is actually doing, in concrete terms — a 7% grow-time cut per
+  // level is real but easy to miss next to the day/night (2x) and weather (up to 2.8x)
+  // swings, so the UI shows this instead of leaving the player to infer it from "Lv.3/5".
+  effectLabel?: (level: number) => string;
 }
 
 export const TOOLS: ToolDef[] = [
@@ -228,9 +232,10 @@ export const TOOLS: ToolDef[] = [
     name: 'Watering Can',
     emoji: '💧',
     maxLevel: 5,
-    description: 'Cuts grow time by 7% per level (up to -35%).',
+    description: 'Boosts income from your planted crops by 7% per level (up to +35%).',
     costForLevel: (level) => 80 * level * level,
     implemented: true,
+    effectLabel: (level) => (level === 0 ? 'no bonus yet' : `+${Math.round(WATERING_CAN_PER_LEVEL * level * 100)}% crop income now`),
   },
   {
     id: 'fertilizer',
