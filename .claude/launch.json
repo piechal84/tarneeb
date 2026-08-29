@@ -6,12 +6,6 @@
       "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
       "runtimeArgs": ["node_modules/vite/bin/vite.js"],
       "port": 5173
-    },
-    {
-      "name": "kelka-rts-dev",
-      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
-      "runtimeArgs": ["kelka-rts/node_modules/vite/bin/vite.js", "kelka-rts", "--port", "5174", "--strictPort"],
-      "port": 5174
     }
   ]
 }
